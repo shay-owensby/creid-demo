@@ -130,6 +130,19 @@ creid-demo/
 
 ---
 
+## Sample Reports
+
+The repo includes real example output from a run against a Springfield, MO property, so you can see what each skill produces before running your own analysis:
+
+| Report | Markdown | HTML |
+|--------|----------|------|
+| Full property analysis | [PROPERTY-ANALYSIS](PROPERTY-ANALYSIS-5280-S-Southwood-Rd-Springfield-MO.md) | [view](PROPERTY-ANALYSIS-5280-S-Southwood-Rd-Springfield-MO.html) |
+| Comparable sales | [PROPERTY-COMPS](PROPERTY-COMPS-5280-S-Southwood-Rd-Springfield-MO.md) | [view](PROPERTY-COMPS-5280-S-Southwood-Rd-Springfield-MO.html) |
+| MLS listing | [PROPERTY-LISTING](PROPERTY-LISTING-5280-S-Southwood-Rd-Springfield-MO.md) | — |
+| Local market analysis | [PROPERTY-MARKET](PROPERTY-MARKET-Springfield-MO-65804.md) | [view](PROPERTY-MARKET-Springfield-MO-65804.html) |
+
+---
+
 ## PDF Reports
 
 `/realestate report-pdf` generates a professional 6-page report with a color-coded Property Score gauge, score dashboard, comp tables, cash flow projections, neighborhood charts, and a recommendation section with suggested offer and risk matrix.
