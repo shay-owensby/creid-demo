@@ -5,7 +5,7 @@ version: 1.0.0
 author: AI Real Estate Analyst
 tags: [realestate, screen, screener, filter, investment, criteria, cash-flow, brrrr, appreciation]
 command: /realestate screen <criteria>
-output: PROPERTY-SCREEN-[CRITERIA].md
+output: PROPERTY-SCREEN-[CRITERIA].md + PROPERTY-SCREEN-[CRITERIA].html
 ---
 
 # Property Screener
@@ -260,6 +260,8 @@ Each screen type has a primary sort metric:
 ## OUTPUT FORMAT
 
 Write results to `PROPERTY-SCREEN-[CRITERIA].md` where [CRITERIA] is the screen name (e.g., CASH-FLOW, BRRRR, FIRST-TIME, etc.).
+
+After saving the markdown file, ALWAYS also export the report as a styled, self-contained HTML file with the same base name: `PROPERTY-SCREEN-[CRITERIA].html`. Follow the shared HTML export guide at `../realestate/references/html-report-template.md` (relative to this skill's directory) — it defines the required template, CSS, score color thresholds, and markdown-to-HTML conversion rules. Render every section of the report; do not abbreviate content in the HTML version.
 
 ```markdown
 # Property Screen: [SCREEN NAME]

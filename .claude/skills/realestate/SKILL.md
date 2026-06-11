@@ -8,20 +8,20 @@ You are a comprehensive AI real estate research and analysis system for Claude C
 
 | Command | Description | Output |
 |---------|-------------|--------|
-| `/realestate analyze <address>` | Full property analysis (5 parallel agents) | PROPERTY-ANALYSIS-[ADDRESS].md |
-| `/realestate quick <address>` | 60-second property snapshot | Terminal output |
-| `/realestate comps <address>` | Comparable sales analysis | PROPERTY-COMPS-[ADDRESS].md |
-| `/realestate rental <address>` | Rental income & cash flow projection | PROPERTY-RENTAL-[ADDRESS].md |
-| `/realestate listing <address>` | Professional MLS-ready listing description | PROPERTY-LISTING-[ADDRESS].md |
-| `/realestate invest <address>` | Investment analysis (buy-hold, BRRRR, flip) | PROPERTY-INVEST-[ADDRESS].md |
-| `/realestate neighborhood <address>` | Schools, crime, walkability, demographics, growth | PROPERTY-NEIGHBORHOOD-[ADDRESS].md |
-| `/realestate flip <address>` | Fix-and-flip analysis with rehab budget | PROPERTY-FLIP-[ADDRESS].md |
-| `/realestate commercial <address>` | Commercial property analysis (NOI, cap rate) | PROPERTY-COMMERCIAL-[ADDRESS].md |
-| `/realestate mortgage <price>` | Mortgage calculator & affordability analysis | PROPERTY-MORTGAGE.md |
-| `/realestate market <city/zip>` | Local market conditions & trends | PROPERTY-MARKET-[LOCATION].md |
-| `/realestate compare <addr1> <addr2>` | Side-by-side property comparison | PROPERTY-COMPARE.md |
-| `/realestate screen <criteria>` | Property screener by investment criteria | PROPERTY-SCREEN-[CRITERIA].md |
-| `/realestate report-pdf` | Professional PDF property report | PROPERTY-REPORT.pdf |
+| `/realestate analyze <address>` | Full property analysis (5 parallel agents) | PROPERTY-ANALYSIS-[ADDRESS].md + .html |
+| `/realestate quick <address>` | 60-second property snapshot | Terminal output + PROPERTY-QUICK-[ADDRESS].html |
+| `/realestate comps <address>` | Comparable sales analysis | PROPERTY-COMPS-[ADDRESS].md + .html |
+| `/realestate rental <address>` | Rental income & cash flow projection | PROPERTY-RENTAL-[ADDRESS].md + .html |
+| `/realestate listing <address>` | Professional MLS-ready listing description | PROPERTY-LISTING-[ADDRESS].md + .html |
+| `/realestate invest <address>` | Investment analysis (buy-hold, BRRRR, flip) | PROPERTY-INVEST-[ADDRESS].md + .html |
+| `/realestate neighborhood <address>` | Schools, crime, walkability, demographics, growth | PROPERTY-NEIGHBORHOOD-[ADDRESS].md + .html |
+| `/realestate flip <address>` | Fix-and-flip analysis with rehab budget | PROPERTY-FLIP-[ADDRESS].md + .html |
+| `/realestate commercial <address>` | Commercial property analysis (NOI, cap rate) | PROPERTY-COMMERCIAL-[ADDRESS].md + .html |
+| `/realestate mortgage <price>` | Mortgage calculator & affordability analysis | PROPERTY-MORTGAGE.md + .html |
+| `/realestate market <city/zip>` | Local market conditions & trends | PROPERTY-MARKET-[LOCATION].md + .html |
+| `/realestate compare <addr1> <addr2>` | Side-by-side property comparison | PROPERTY-COMPARE.md + .html |
+| `/realestate screen <criteria>` | Property screener by investment criteria | PROPERTY-SCREEN-[CRITERIA].md + .html |
+| `/realestate report-pdf` | Professional PDF property report | PROPERTY-REPORT.pdf + .html |
 
 ## Routing Logic
 
@@ -98,6 +98,7 @@ All outputs must follow these rules:
 ## File Output
 
 All markdown outputs saved to the current working directory.
+Every skill ALSO exports a styled, self-contained HTML version of its report (same base name, `.html` extension) following the shared template at `references/html-report-template.md` in this skill's directory.
 PDF reports generated via `Bash(python3 ~/.claude/skills/realestate/scripts/generate_realestate_pdf.py)`.
 
 **DISCLAIMER:** This tool provides AI-generated research and analysis for educational purposes only. It is not financial or investment advice. Real estate investments involve significant risk. Property values, rental estimates, and projections are approximations. Always conduct your own due diligence and consult licensed real estate professionals before making any decisions.

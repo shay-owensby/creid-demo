@@ -5,7 +5,7 @@ version: 1.0.0
 author: AI Real Estate Analyst
 tags: [realestate, report, pdf, professional, client-ready, property-report]
 command: /realestate report-pdf
-output: PROPERTY-REPORT.pdf
+output: PROPERTY-REPORT.pdf + PROPERTY-REPORT.html
 ---
 
 # Professional PDF Property Report Generator
@@ -314,20 +314,24 @@ python3 ~/.claude/skills/realestate/scripts/generate_realestate_pdf.py
 | Footer | Page numbers, disclaimer, generation date |
 | Margins | 50pt top, 40pt sides, 50pt bottom |
 
-### STEP 6: VERIFY AND DELIVER
+### STEP 6: GENERATE THE HTML COMPANION
 
-After PDF generation:
+After the PDF, ALWAYS also export the same report as a styled, self-contained HTML file: `PROPERTY-REPORT.html` (or `PROPERTY-REPORT-[ADDRESS].html` if an address was specified). Follow the shared HTML export guide at `../realestate/references/html-report-template.md` (relative to this skill's directory). Render the same sections as the PDF from the same JSON payload — cover summary as the header with score/grade/signal badges, property overview, comps, cash flow, neighborhood scorecard (use `.scorebar` elements for category and school scores), investment analysis, market conditions, and the recommendation as a callout. Apply the same 70/40 score color thresholds.
+
+### STEP 7: VERIFY AND DELIVER
+
+After generation:
 
 ```bash
-ls -la PROPERTY-REPORT.pdf
+ls -la PROPERTY-REPORT.pdf PROPERTY-REPORT.html
 ```
 
-Confirm the file was created and report:
-- File name and location
-- File size
-- Number of pages
+Confirm both files were created and report:
+- File names and locations
+- File sizes
+- Number of PDF pages
 - Which data sources were included (list the PROPERTY-*.md files used)
-- Any data gaps (sections that had no source file — these will show "Data not available" in the PDF)
+- Any data gaps (sections that had no source file — these will show "Data not available" in the PDF and HTML)
 
 ---
 
@@ -335,7 +339,7 @@ Confirm the file was created and report:
 
 | Spec | Value |
 |------|-------|
-| File name | `PROPERTY-REPORT.pdf` (or `PROPERTY-REPORT-[ADDRESS].pdf` if address specified) |
+| File names | `PROPERTY-REPORT.pdf` + `PROPERTY-REPORT.html` (or `PROPERTY-REPORT-[ADDRESS].pdf` + `.html` if address specified) |
 | Page size | Letter (8.5" x 11") |
 | Orientation | Portrait |
 | Pages | 6-10 depending on available data |
@@ -352,7 +356,7 @@ Confirm the file was created and report:
 4. **Complete disclaimer** — Full disclaimer must appear on the cover page and the last page
 5. **Graceful degradation** — If some analysis files are missing, generate the PDF with available data and mark missing sections as "Not analyzed — run /realestate [command] to add this data"
 6. **Install dependencies** — If ReportLab is not installed, install it automatically: `pip install reportlab`
-7. **Overwrite safely** — If PROPERTY-REPORT.pdf already exists, overwrite it (the latest data wins)
+7. **Overwrite safely** — If PROPERTY-REPORT.pdf or PROPERTY-REPORT.html already exists, overwrite it (the latest data wins)
 8. **Color-coded scores** — All scores must be color-coded: green (70+), yellow (40-69), red (0-39)
 
 ## ERROR HANDLING

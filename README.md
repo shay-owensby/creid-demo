@@ -61,6 +61,8 @@ Each skill is a self-contained `SKILL.md` under [.claude/skills/](.claude/skills
 | **realestate-listing** | `/realestate listing <address>` | MLS-ready listing descriptions with attention-grabbing headlines, feature highlights, neighborhood context, and SEO keywords across multiple buyer-persona styles |
 | **realestate-report-pdf** | `/realestate report-pdf` | Compiles all `PROPERTY-*.md` analysis files into a polished, client-ready PDF with score gauges, comparison tables, financial projections, and recommendations |
 
+In addition to its primary output (markdown report, terminal scorecard, or PDF), **every skill also exports a styled, self-contained HTML version** of its report — same base name with an `.html` extension — using the shared template at [.claude/skills/realestate/references/html-report-template.md](.claude/skills/realestate/references/html-report-template.md).
+
 ---
 
 ## The 5 Parallel Agents
@@ -100,6 +102,8 @@ creid-demo/
     ├── skills/
     │   ├── realestate/                 # Main orchestrator
     │   │   ├── SKILL.md
+    │   │   ├── references/
+    │   │   │   └── html-report-template.md      # Shared HTML export template (all skills)
     │   │   └── scripts/
     │   │       └── generate_realestate_pdf.py   # PDF report generator (ReportLab)
     │   ├── realestate-analyze/         # Full analysis (launches 5 agents)

@@ -213,6 +213,8 @@ Evaluate and present these market-specific risks:
 
 Save the analysis as `PROPERTY-MARKET-[LOCATION].md` in the current working directory. Replace spaces and special characters in LOCATION with hyphens.
 
+After saving the markdown file, ALWAYS also export the report as a styled, self-contained HTML file with the same base name: `PROPERTY-MARKET-[LOCATION].html`. Follow the shared HTML export guide at `../realestate/references/html-report-template.md` (relative to this skill's directory) — it defines the required template, CSS, score color thresholds, and markdown-to-HTML conversion rules. Render every section of the report; do not abbreviate content in the HTML version.
+
 ### Output Structure
 
 ```markdown

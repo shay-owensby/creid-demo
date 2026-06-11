@@ -361,6 +361,8 @@ Based on the composite score, grade, and risk assessment, write:
 
 Save the final report to `PROPERTY-ANALYSIS-[ADDRESS].md` where `[ADDRESS]` is the street address with spaces replaced by hyphens and special characters removed (e.g., `PROPERTY-ANALYSIS-123-Oak-St-Austin-TX.md`).
 
+After saving the markdown file, ALWAYS also export the report as a styled, self-contained HTML file with the same base name: `PROPERTY-ANALYSIS-[ADDRESS].html`. Follow the shared HTML export guide at `../realestate/references/html-report-template.md` (relative to this skill's directory) — it defines the required template, CSS, score color thresholds, and markdown-to-HTML conversion rules. Render every section of the report; do not abbreviate content in the HTML version.
+
 ```markdown
 # Property Analysis Report: [FULL ADDRESS]
 

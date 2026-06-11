@@ -457,6 +457,8 @@ Based on the scores, recommend the optimal strategy and explain why. Consider:
 
 Save the report to `PROPERTY-INVEST-[ADDRESS].md`.
 
+After saving the markdown file, ALWAYS also export the report as a styled, self-contained HTML file with the same base name: `PROPERTY-INVEST-[ADDRESS].html`. Follow the shared HTML export guide at `../realestate/references/html-report-template.md` (relative to this skill's directory) — it defines the required template, CSS, score color thresholds, and markdown-to-HTML conversion rules. Render every section of the report; do not abbreviate content in the HTML version.
+
 ```markdown
 # Investment Analysis: [FULL ADDRESS]
 
