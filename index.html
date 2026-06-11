@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get the AI Real Estate Analyst Pack</title>
+<meta name="description" content="Sign up to receive the AI Real Estate Analyst pack of agents, skills, and toolsets.">
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #181b22;
+    --text: #f2f3f5;
+    --muted: #9aa0ab;
+    --accent: #4f8ef7;
+    --accent-2: #7c5cff;
+    --border: #2a2e38;
+    --green: #3ecf8e;
+    --red: #f06a5e;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); color: var(--text); padding: 24px;
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(600px 400px at 15% 10%, rgba(79, 142, 247, .14), transparent 60%),
+      radial-gradient(600px 400px at 85% 90%, rgba(124, 92, 255, .12), transparent 60%);
+  }
+  .wrap { width: 100%; max-width: 460px; }
+  .badge {
+    display: inline-block; font-size: 12.5px; font-weight: 600; letter-spacing: .4px;
+    text-transform: uppercase; color: var(--accent);
+    background: rgba(79, 142, 247, .12); border: 1px solid rgba(79, 142, 247, .3);
+    padding: 4px 12px; border-radius: 999px; margin-bottom: 18px;
+  }
+  h1 { font-size: 30px; line-height: 1.2; letter-spacing: -.5px; margin-bottom: 12px; }
+  h1 .grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { color: var(--muted); font-size: 15.5px; margin-bottom: 28px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 26px; box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+  }
+  .field { margin-bottom: 16px; }
+  label { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+  label .opt { color: var(--muted); font-weight: 400; font-size: 12px; }
+  input {
+    width: 100%; padding: 12px 14px; font-size: 16px; color: var(--text);
+    background: #11141a; border: 1px solid var(--border); border-radius: 9px; outline: none;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 142, 247, .18); }
+  input.invalid { border-color: var(--red); }
+  .hp { position: absolute; left: -9999px; opacity: 0; height: 0; overflow: hidden; }
+  button {
+    width: 100%; padding: 13px; margin-top: 6px; font-size: 16px; font-weight: 600;
+    color: white; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border: none; border-radius: 9px; cursor: pointer; transition: filter .12s, transform .06s;
+  }
+  button:hover { filter: brightness(1.1); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .6; cursor: default; }
+  .note { color: var(--muted); font-size: 12.5px; text-align: center; margin-top: 14px; }
+  .error-msg { color: var(--red); font-size: 13.5px; margin-top: 12px; text-align: center; display: none; }
+  .success { text-align: center; padding: 18px 4px; display: none; }
+  .success .check {
+    width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%;
+    background: rgba(62, 207, 142, .14); border: 1px solid rgba(62, 207, 142, .4);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green); font-size: 26px;
+  }
+  .success h2 { font-size: 21px; margin-bottom: 8px; }
+  .success p { color: var(--muted); font-size: 14.5px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <span class="badge">Live demo · tonight only</span>
+  <h1>Take the <span class="grad">AI Real Estate Analyst</span> home with you</h1>
+  <p class="sub">Liked what you saw tonight? Drop your details and we'll send you the full
+  pack of agents, skills, and toolsets tomorrow — ready to use in your own projects.</p>
+
+  <div class="card">
+    <form id="lead-form" novalidate>
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name" placeholder="Jane Doe" required>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="jane@example.com" required>
+      </div>
+      <div class="field">
+        <label for="phone">Phone <span class="opt">optional</span></label>
+        <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="(417) 555-0123">
+      </div>
+      <div class="hp" aria-hidden="true">
+        <label for="company">Company</label>
+        <input id="company" name="company" type="text" tabindex="-1" autocomplete="off">
+      </div>
+      <button id="submit-btn" type="submit">Send me the pack</button>
+      <div class="error-msg" id="error-msg"></div>
+      <div class="note">We'll only use this to send you the pack. No spam, ever.</div>
+    </form>
+
+    <div class="success" id="success">
+      <div class="check">✓</div>
+      <h2>You're on the list!</h2>
+      <p>Keep an eye on your inbox — the full pack of agents, skills, and toolsets
+      lands there tomorrow.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('lead-form');
+const btn = document.getElementById('submit-btn');
+const errEl = document.getElementById('error-msg');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errEl.style.display = 'none';
+
+  const name = form.name.value.trim();
+  const email = form.email.value.trim();
+  const phone = form.phone.value.trim();
+
+  let bad = false;
+  form.name.classList.toggle('invalid', !name); if (!name) bad = true;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  form.email.classList.toggle('invalid', !emailOk); if (!emailOk) bad = true;
+  if (bad) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone, company: form.company.value }),
+    });
+    if (!res.ok) throw new Error('Request failed');
+    form.style.display = 'none';
+    document.getElementById('success').style.display = 'block';
+  } catch (err) {
+    errEl.textContent = 'Something went wrong — please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Send me the pack';
+  }
+});
+</script>
+</body>
+</html>

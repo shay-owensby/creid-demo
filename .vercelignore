@@ -1,0 +1,7 @@
+# Only the landing page (index.html) and api/ should be deployed.
+dashboard/
+leads/
+.claude/
+*.md
+PROPERTY-*
+.gitignore

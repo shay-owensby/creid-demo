@@ -7,3 +7,8 @@ PROPERTY-*
 
 # macOS
 .DS_Store
+.vercel
+
+# Collected event leads (PII — never commit)
+leads/leads.md
+leads/leads.jsonl
