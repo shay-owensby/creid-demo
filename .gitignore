@@ -1,0 +1,9 @@
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Report exports (private — never commit)
+PROPERTY-*
+*.pdf
+
+# macOS
+.DS_Store

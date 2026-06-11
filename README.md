@@ -130,16 +130,9 @@ creid-demo/
 
 ---
 
-## Sample Reports
+## Report Output
 
-The repo includes real example output from a run against a Springfield, MO property, so you can see what each skill produces before running your own analysis:
-
-| Report | Markdown | HTML |
-|--------|----------|------|
-| Full property analysis | [PROPERTY-ANALYSIS](PROPERTY-ANALYSIS-5280-S-Southwood-Rd-Springfield-MO.md) | [view](PROPERTY-ANALYSIS-5280-S-Southwood-Rd-Springfield-MO.html) |
-| Comparable sales | [PROPERTY-COMPS](PROPERTY-COMPS-5280-S-Southwood-Rd-Springfield-MO.md) | [view](PROPERTY-COMPS-5280-S-Southwood-Rd-Springfield-MO.html) |
-| MLS listing | [PROPERTY-LISTING](PROPERTY-LISTING-5280-S-Southwood-Rd-Springfield-MO.md) | — |
-| Local market analysis | [PROPERTY-MARKET](PROPERTY-MARKET-Springfield-MO-65804.md) | [view](PROPERTY-MARKET-Springfield-MO-65804.html) |
+Each skill writes its reports (`PROPERTY-*.md`, `PROPERTY-*.html`, and PDFs) to the project root. These exports contain client and property data and are **git-ignored — they stay local and are never committed to the repo**.
 
 ---
 
