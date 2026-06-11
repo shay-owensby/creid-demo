@@ -23,6 +23,21 @@ You are a comprehensive AI real estate research and analysis system for Claude C
 | `/realestate screen <criteria>` | Property screener by investment criteria | PROPERTY-SCREEN-[CRITERIA].md + .html |
 | `/realestate report-pdf` | Professional PDF property report | PROPERTY-REPORT.pdf + .html |
 
+### Commercial Real Estate Suite
+
+| Command | Description | Output |
+|---------|-------------|--------|
+| `/realestate dcf <address> [hold] [price]` | Multi-year DCF underwriting (IRR, equity multiple, sensitivity) | PROPERTY-DCF-[ADDRESS].md + .html |
+| `/realestate waterfall <deal terms>` | LP/GP equity waterfall & promote modeling | PROPERTY-WATERFALL-[DEAL].md + .html |
+| `/realestate debt <address or price/NOI>` | CRE loan sizing, lender comparison, refi analysis | PROPERTY-DEBT-[ADDRESS].md + .html |
+| `/realestate lease-abstract <lease file>` | Commercial lease abstraction with red-flag analysis | PROPERTY-LEASE-[TENANT].md + .html |
+| `/realestate ner <proposals>` | Net effective rent comparison of lease proposals | PROPERTY-NER-[DEAL].md + .html |
+| `/realestate develop <parcel> [type]` | Ground-up development feasibility & land residual | PROPERTY-DEVELOP-[ADDRESS].md + .html |
+| `/realestate hbu <address or parcel>` | Highest & best use analysis (four tests, scenarios) | PROPERTY-HBU-[ADDRESS].md + .html |
+| `/realestate om <address>` | Offering memorandum (sell-side marketing package) | PROPERTY-OM-[ADDRESS].md + .html |
+| `/realestate loi <address> <terms>` | Purchase or lease LOI draft with annotations | PROPERTY-LOI-[ADDRESS].md + .html |
+| `/realestate 1031 <property details>` | 1031 exchange & tax deferral analysis | PROPERTY-1031-[ADDRESS].md + .html |
+
 ## Routing Logic
 
 When the user invokes `/realestate <command>`, route to the appropriate sub-skill.
@@ -66,6 +81,11 @@ Fast 60-second property assessment. Do NOT launch subagents. Instead:
 
 ### Individual Commands
 For all other commands, route to the corresponding sub-skill.
+
+### Commercial Suite Routing Notes
+- The CRE skills chain through report files in the working directory: `dcf` reuses PROPERTY-COMMERCIAL data when present; `waterfall` reuses PROPERTY-DCF cash flows; `debt` reuses NOI from PROPERTY-COMMERCIAL or PROPERTY-DCF; `om` builds from PROPERTY-COMMERCIAL/DCF/MARKET analyses; `loi` pulls economics from PROPERTY-COMMERCIAL or PROPERTY-NER. Always check for these files before re-researching.
+- `lease-abstract` works on a lease document (file path or pasted text), not web data — route document inputs there.
+- `om` and `loi` produce documents rather than scored analyses; they intentionally omit the 0-100 score.
 
 ## Data Sources
 

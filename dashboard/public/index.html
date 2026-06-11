@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Real Estate Analyst</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<style>
+  :root {
+    --text: #37352f;
+    --muted: #91918e;
+    --sidebar-bg: #f7f7f5;
+    --hover: rgba(0, 0, 0, .045);
+    --active: rgba(0, 0, 0, .07);
+    --border: #ededec;
+    --blue: #2383e2;
+    --blue-bg: rgba(35, 131, 226, .09);
+    --green: #448361;
+    --green-bg: rgba(68, 131, 97, .12);
+    --red: #d44c47;
+    --red-bg: rgba(212, 76, 71, .1);
+    --code-bg: #f7f6f3;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    display: flex; overflow: hidden; color: var(--text); background: white;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ------------------------------------------------------- sidebar ---- */
+  aside {
+    width: 260px; flex-shrink: 0; background: var(--sidebar-bg);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    padding: 8px; overflow-y: auto;
+  }
+  .ws {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 6px;
+    font-weight: 600; font-size: 14px; border-radius: 6px;
+  }
+  .ws .conn { margin-left: auto; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .ws .conn.off { background: var(--red); }
+  .section {
+    font-size: 11.5px; font-weight: 600; color: var(--muted); letter-spacing: .3px;
+    padding: 14px 10px 4px; user-select: none;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 6px;
+    font-size: 13.5px; color: rgba(55, 53, 47, .85); cursor: pointer; min-height: 28px;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--hover); }
+  .nav-item.active { background: var(--active); font-weight: 500; color: var(--text); }
+  .nav-item .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+  .nav-item .nav-caret {
+    width: 16px; height: 16px; flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; color: var(--muted); font-size: 10px; border-radius: 4px;
+    transition: transform .15s;
+  }
+  .nav-item .nav-caret:hover { background: rgba(0, 0, 0, .08); color: var(--text); }
+  .nav-item.open .nav-caret { transform: rotate(90deg); }
+  .sub-list { display: none; }
+  .sub-list.open { display: block; }
+  .nav-item.sub { padding-left: 34px; font-size: 13px; color: rgba(55, 53, 47, .75); }
+  .nav-item .spin {
+    width: 10px; height: 10px; border: 2px solid var(--blue); border-top-color: transparent;
+    border-radius: 50%; animation: spin .8s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .count { color: var(--muted); font-weight: 400; font-size: 11px; }
+  .new-flash { animation: flash 1.8s ease-out; }
+  @keyframes flash { 0% { background: var(--green-bg); } 100% { background: none; } }
+
+  /* ---------------------------------------------------------- main ---- */
+  main { flex: 1; overflow-y: auto; min-width: 0; }
+  .page { max-width: 820px; margin: 0 auto; padding: 56px 64px 120px; }
+  .page.wide { max-width: 1100px; }
+  h1.title { font-size: 36px; font-weight: 700; letter-spacing: -.4px; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 15px; margin-bottom: 20px; }
+  .props { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+  .prop { display: flex; gap: 12px; font-size: 13.5px; padding: 3px 0; }
+  .prop .k { color: var(--muted); width: 120px; flex-shrink: 0; display: flex; gap: 6px; align-items: center; }
+  .prop .v { color: var(--text); word-break: break-word; }
+  hr.div { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+
+  /* run bar (input + button) */
+  .run-bar { display: flex; gap: 8px; margin: 18px 0 6px; }
+  .run-bar input {
+    flex: 1; padding: 8px 12px; font-size: 14px; color: var(--text);
+    border: 1px solid #d9d9d6; border-radius: 6px; outline: none; background: white;
+  }
+  .run-bar input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-bg); }
+  .btn {
+    padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 500; background: var(--blue); color: white;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.subtle { background: none; border: 1px solid #d9d9d6; color: var(--text); }
+  .btn.subtle:hover { background: var(--hover); filter: none; }
+  .btn.danger { background: none; border: 1px solid #d9d9d6; color: var(--red); }
+  .btn.danger:hover { background: var(--red-bg); border-color: var(--red); filter: none; }
+
+  /* pills */
+  .pill { font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 12px; display: inline-block; }
+  .pill.running { background: var(--blue-bg); color: var(--blue); }
+  .pill.done { background: var(--green-bg); color: var(--green); }
+  .pill.error { background: var(--red-bg); color: var(--red); }
+
+  /* run blocks (activity) */
+  .run-block { border: 1px solid var(--border); border-radius: 8px; margin: 14px 0; overflow: hidden; }
+  .run-block .rb-head {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 14px;
+    background: white; cursor: pointer; user-select: none;
+  }
+  .run-block .rb-head:hover { background: var(--hover); }
+  .run-block .rb-head .caret { color: var(--muted); font-size: 11px; transition: transform .15s; }
+  .run-block.collapsed .caret { transform: rotate(-90deg); }
+  .run-block.collapsed .log { display: none; }
+  .rb-head .skill-name { font-weight: 600; }
+  .rb-head .in { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rb-head .pill { margin-left: auto; flex-shrink: 0; }
+  .log {
+    background: var(--code-bg); padding: 12px 18px; font-family: var(--mono);
+    font-size: 12px; line-height: 1.7; max-height: 320px; overflow-y: auto;
+    border-top: 1px solid var(--border);
+  }
+  .ev { display: flex; gap: 8px; align-items: baseline; color: #6b6a66; }
+  .ev .ico { flex-shrink: 0; }
+  .ev.tool strong { color: #b07d2b; font-weight: 600; }
+  .ev.text { color: var(--text); }
+  .ev.result { color: var(--green); font-weight: 600; }
+
+  .empty {
+    color: var(--muted); padding: 36px 0; font-size: 14px;
+  }
+
+  /* skill cards (overview) */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .card {
+    border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px;
+    cursor: pointer; display: flex; flex-direction: column; gap: 6px;
+    transition: box-shadow .12s, border-color .12s;
+  }
+  .card:hover { border-color: #d3d1cb; box-shadow: 0 2px 8px rgba(0, 0, 0, .06); }
+  .card .c-name { font-weight: 600; font-size: 14.5px; }
+  .card .c-id { font-family: var(--mono); font-size: 11.5px; color: var(--blue); }
+  .card .c-desc {
+    color: var(--muted); font-size: 13px; line-height: 1.45; flex: 1;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .card .c-run {
+    align-self: flex-start; margin-top: 6px; padding: 5px 14px; font-size: 13px;
+    border-radius: 6px; border: 1px solid #d9d9d6; background: white; color: var(--text);
+    cursor: pointer; font-weight: 500;
+  }
+  .card .c-run:hover { background: var(--blue); border-color: var(--blue); color: white; }
+
+  /* report rows (overview) */
+  .rows { border-top: 1px solid var(--border); }
+  .row {
+    display: flex; align-items: center; gap: 14px; padding: 11px 6px;
+    border-bottom: 1px solid var(--border); cursor: pointer; font-size: 14px;
+  }
+  .row:hover { background: var(--hover); }
+  .row .r-name { flex: 1; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .r-meta { color: var(--muted); font-size: 12.5px; flex-shrink: 0; }
+  .row .r-del {
+    border: none; background: none; cursor: pointer; color: var(--muted);
+    font-size: 16px; line-height: 1; padding: 2px 8px; border-radius: 4px; flex-shrink: 0;
+    opacity: 0;
+  }
+  .row:hover .r-del { opacity: 1; }
+  .row .r-del:hover { background: var(--red-bg); color: var(--red); }
+
+  .crumb {
+    display: inline-block; font-size: 13px; color: var(--muted); cursor: pointer;
+    margin-bottom: 16px; padding: 2px 6px; margin-left: -6px; border-radius: 4px;
+  }
+  .crumb:hover { background: var(--hover); color: var(--text); }
+
+  /* rendered markdown (notion-ish) */
+  .md-body { font-size: 15px; line-height: 1.65; }
+  .md-body h1, .md-body h2, .md-body h3 { font-weight: 650; margin: 1.4em 0 .4em; letter-spacing: -.2px; }
+  .md-body h1 { font-size: 26px; } .md-body h2 { font-size: 21px; } .md-body h3 { font-size: 17px; }
+  .md-body p, .md-body li { margin: .35em 0; }
+  .md-body table { border-collapse: collapse; margin: 1em 0; width: 100%; font-size: 13.5px; }
+  .md-body th, .md-body td { border: 1px solid var(--border); padding: 6px 12px; text-align: left; }
+  .md-body th { background: var(--code-bg); font-weight: 600; }
+  .md-body code { background: var(--code-bg); color: #c0463f; padding: 2px 5px; border-radius: 4px; font-size: 13px; font-family: var(--mono); }
+  .md-body pre { background: var(--code-bg); padding: 16px; border-radius: 6px; overflow-x: auto; margin: 1em 0; }
+  .md-body pre code { background: none; color: var(--text); }
+  .md-body blockquote { border-left: 3px solid var(--text); margin: 1em 0; padding: 2px 16px; color: #5a5853; }
+  .md-body hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
+
+  iframe.report-frame { width: 100%; height: calc(100vh - 220px); border: 1px solid var(--border); border-radius: 8px; background: white; }
+  .fm-block {
+    background: var(--code-bg); border-left: 3px solid var(--blue); border-radius: 4px;
+    padding: 12px 16px; font-family: var(--mono); font-size: 12px; line-height: 1.7;
+    white-space: pre-wrap; color: #5a5853; margin-bottom: 24px;
+  }
+
+  /* ------------------------------------------------------ run modal ---- */
+  #modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15, 15, 15, .45); z-index: 100;
+    display: none; align-items: flex-start; justify-content: center; padding-top: 12vh;
+  }
+  #modal-backdrop.open { display: flex; }
+  .modal {
+    background: white; border-radius: 10px; width: 480px; max-width: 92vw;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, .25); padding: 24px 28px;
+    max-height: 72vh; overflow-y: auto;
+  }
+  .modal h3 { font-size: 17px; font-weight: 650; display: flex; align-items: center; gap: 8px; }
+  .modal .m-sub { color: var(--muted); font-size: 13px; margin: 2px 0 16px; }
+  .m-field { margin-bottom: 14px; }
+  .m-field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+  .m-field label .req { color: var(--red); }
+  .m-field label .opt { color: var(--muted); font-weight: 400; font-size: 12px; }
+  .m-field input, .m-field select, .m-field textarea {
+    width: 100%; padding: 8px 12px; font-size: 14px; color: var(--text);
+    border: 1px solid #d9d9d6; border-radius: 6px; outline: none; background: white;
+    font-family: inherit;
+  }
+  .m-field textarea { resize: vertical; }
+  .m-field input:focus, .m-field select:focus, .m-field textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-bg); }
+  .m-field .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .m-field input.invalid, .m-field textarea.invalid { border-color: var(--red); }
+  .m-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .m-preview {
+    font-family: var(--mono); font-size: 12px; background: var(--code-bg);
+    border-radius: 5px; padding: 8px 12px; color: #5a5853; margin-top: 4px; word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="ws"><span>AI Real Estate Analyst</span><span class="conn" id="conn" title="Connected"></span></div>
+  <div class="nav-item" id="nav-home" onclick="nav('home')"><span class="label">Activity</span><span class="count" id="run-count"></span></div>
+  <div class="nav-item" id="nav-skills" onclick="nav('skills')">
+    <span class="nav-caret" onclick="event.stopPropagation(); toggleSection('skills')">▶</span>
+    <span class="label">Skills</span><span class="count" id="skill-count"></span>
+  </div>
+  <div class="sub-list" id="sub-skills"></div>
+  <div class="nav-item" id="nav-agents" onclick="nav('agents')">
+    <span class="nav-caret" onclick="event.stopPropagation(); toggleSection('agents')">▶</span>
+    <span class="label">Agents</span><span class="count" id="agent-count"></span>
+  </div>
+  <div class="sub-list" id="sub-agents"></div>
+  <div class="nav-item" id="nav-reports" onclick="nav('reports')">
+    <span class="nav-caret" onclick="event.stopPropagation(); toggleSection('reports')">▶</span>
+    <span class="label">Reports</span><span class="count" id="report-count"></span>
+  </div>
+  <div class="sub-list" id="sub-reports"></div>
+</aside>
+
+<main id="main"></main>
+
+<div id="modal-backdrop" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const EV_ICONS = { tool: '›', text: '·', status: '·', result: '✓', stderr: '!' };
+
+let skills = [];
+let agents = [];
+let reports = [];
+let runsById = {};      // id -> run (status etc.)
+let runEvents = {};     // id -> [events]
+let runOrder = [];      // newest first
+let route = { type: 'home' };
+let knownReports = new Set();
+let firstReportLoad = true;
+// Per-skill run forms. Each field: {key, label, placeholder, required, hint, type, options}
+// compose(values) builds the argument string the skill's SKILL.md documents.
+const ADDRESS_FIELD = {
+  key: 'address', label: 'Property address', required: true,
+  placeholder: '5280 S Southwood Rd, Springfield, MO',
+};
+const FORMS = {
+  'realestate': {
+    fields: [{ key: 'request', label: 'Request', required: true,
+      placeholder: 'analyze 5280 S Southwood Rd, Springfield, MO',
+      hint: 'Free-form command for the orchestrator, e.g. "quick <address>" or "market 65804"' }],
+  },
+  'realestate-market': {
+    fields: [{ key: 'location', label: 'Location', required: true,
+      placeholder: 'Springfield, MO — or 65804',
+      hint: 'City, city + state, ZIP code, or metro area' }],
+  },
+  'realestate-compare': {
+    fields: [
+      { key: 'address1', label: 'First property address', required: true, placeholder: '5280 S Southwood Rd, Springfield, MO' },
+      { key: 'address2', label: 'Second property address', required: true, placeholder: '1244 E Lakewood St, Springfield, MO' },
+    ],
+    compose: v => `${v.address1} vs ${v.address2}`,
+  },
+  'realestate-mortgage': {
+    fields: [
+      { key: 'price', label: 'Property price', required: true, placeholder: '450000' },
+      { key: 'income', label: 'Annual income', required: false, placeholder: '120000', hint: 'Enables affordability analysis' },
+      { key: 'location', label: 'Location', required: false, placeholder: 'Springfield, MO', hint: 'Enables local taxes, insurance & rent vs buy' },
+    ],
+    compose: v => [v.price, v.income && `income ${v.income}`, v.location].filter(Boolean).join(' '),
+  },
+  'realestate-screen': {
+    fields: [
+      { key: 'strategy', label: 'Screen strategy', required: true, type: 'select',
+        options: [['cash-flow', 'Cash Flow'], ['appreciation', 'Appreciation'], ['brrrr', 'BRRRR'],
+                  ['first-time-buyer', 'First-Time Buyer'], ['short-term-rental', 'Short-Term Rental'], ['', 'Custom criteria only']] },
+      { key: 'location', label: 'Location', required: true, placeholder: 'Springfield, MO — or 65804', hint: 'City or ZIP to search in' },
+      { key: 'criteria', label: 'Extra criteria', required: false, placeholder: 'max price 300k, 3+ beds, built after 1990' },
+    ],
+    compose: v => [v.strategy, v.location, v.criteria].filter(Boolean).join(' '),
+  },
+  'realestate-report-pdf': {
+    fields: [{ key: 'address', label: 'Property address', required: false,
+      placeholder: '5280 S Southwood Rd, Springfield, MO',
+      hint: 'Leave blank to compile a PDF from all PROPERTY-*.md reports in the folder' }],
+  },
+  'realestate-dcf': {
+    fields: [
+      { ...ADDRESS_FIELD, placeholder: '1736 E Sunshine St, Springfield, MO 65804' },
+      { key: 'hold', label: 'Hold period (years)', required: false, placeholder: '10', hint: 'Defaults to 10-year hold' },
+      { key: 'price', label: 'Purchase price', required: false, placeholder: '2400000', hint: 'Defaults to asking/estimated price' },
+    ],
+    compose: v => [v.address, v.hold && `${v.hold} year hold`, v.price && `price ${v.price}`].filter(Boolean).join(' '),
+  },
+  'realestate-waterfall': {
+    fields: [
+      { key: 'deal', label: 'Deal or property', required: true,
+        placeholder: '1736 E Sunshine St, Springfield, MO',
+        hint: 'Address with a PROPERTY-DCF report, or a deal name' },
+      { key: 'structure', label: 'Equity structure', required: false,
+        placeholder: '90/10 LP/GP, 8% pref, 80/20 to 12% IRR then 70/30',
+        hint: 'Leave blank for a standard market structure (labeled as assumed)' },
+    ],
+    compose: v => [v.deal, v.structure].filter(Boolean).join(' — '),
+  },
+  'realestate-debt': {
+    fields: [
+      { ...ADDRESS_FIELD, placeholder: '1736 E Sunshine St, Springfield, MO 65804' },
+      { key: 'noi', label: 'NOI', required: false, placeholder: '185000', hint: 'Reuses PROPERTY-COMMERCIAL/DCF data if a report exists' },
+    ],
+    compose: v => [v.address, v.noi && `NOI ${v.noi}`].filter(Boolean).join(' '),
+  },
+  'realestate-lease-abstract': {
+    fields: [{ key: 'lease', label: 'Lease document', required: true,
+      placeholder: '/path/to/lease.pdf',
+      hint: 'Path to a lease (PDF, docx, txt) — or paste the lease text' }],
+  },
+  'realestate-ner': {
+    fields: [{ key: 'proposals', label: 'Lease proposals', required: true, type: 'textarea',
+      placeholder: 'A: 5,000 SF, $22/SF NNN, 5 yr, 3% escalations, 3 mo free, $35/SF TI\nB: 5,200 SF, $24/SF gross, 7 yr, 2.5% escalations, 5 mo free, $50/SF TI',
+      hint: 'Two or more competing proposals — rent, term, escalations, free rent, TI, expense structure' }],
+  },
+  'realestate-develop': {
+    fields: [
+      { key: 'parcel', label: 'Parcel or address', required: true, placeholder: '2.4 acres at Republic Rd & Campbell Ave, Springfield, MO' },
+      { key: 'type', label: 'Project type', required: false, type: 'select',
+        options: [['', 'Infer from zoning/market'], ['multifamily', 'Multifamily'], ['industrial', 'Industrial'],
+                  ['retail', 'Retail'], ['office', 'Office'], ['mixed-use', 'Mixed-Use'], ['self-storage', 'Self-Storage']] },
+    ],
+    compose: v => [v.parcel, v.type].filter(Boolean).join(' '),
+  },
+  'realestate-loi': {
+    fields: [
+      { ...ADDRESS_FIELD, placeholder: '1736 E Sunshine St, Springfield, MO 65804' },
+      { key: 'type', label: 'LOI type', required: true, type: 'select',
+        options: [['purchase', 'Purchase (buyer to seller)'], ['lease', 'Lease (tenant to landlord)']] },
+      { key: 'terms', label: 'Key terms', required: false,
+        placeholder: 'offer 2.1M, 45-day DD, 50k deposit, close in 90 days',
+        hint: 'Unstated terms get market-norm defaults, flagged as assumed' },
+    ],
+    compose: v => [v.type, v.address, v.terms].filter(Boolean).join(' — '),
+  },
+  'realestate-1031': {
+    fields: [
+      { key: 'property', label: 'Relinquished property', required: true, placeholder: '1736 E Sunshine St, Springfield, MO 65804' },
+      { key: 'details', label: 'Sale & basis details', required: false,
+        placeholder: 'selling 2.4M, bought 1.6M in 2018, 300k depreciation taken, 900k debt',
+        hint: 'Sale price, original cost, depreciation, debt — estimates used if omitted' },
+      { key: 'replacement', label: 'Replacement target', required: false, placeholder: 'Address or property type being considered' },
+    ],
+    compose: v => [v.property, v.details, v.replacement && `replacement: ${v.replacement}`].filter(Boolean).join(' — '),
+  },
+};
+// Everything else takes a single property address
+const skillForm = id => FORMS[id] || { fields: [ADDRESS_FIELD] };
+
+// ------------------------------------------------------------- data ----
+async function loadSkills() {
+  skills = await (await fetch('/api/skills')).json();
+  updateSidebar();
+}
+
+async function loadAgents() {
+  agents = await (await fetch('/api/agents')).json();
+  updateSidebar();
+}
+
+let recentNew = new Set(); // report names that just appeared, for the flash
+
+async function loadReports() {
+  reports = await (await fetch('/api/reports')).json();
+  const names = new Set(reports.map(r => r.name));
+  if (!firstReportLoad) {
+    recentNew = new Set([...names].filter(n => !knownReports.has(n)));
+    if (recentNew.size) {
+      $('#nav-reports').classList.remove('new-flash');
+      void $('#nav-reports').offsetWidth; // restart animation
+      $('#nav-reports').classList.add('new-flash');
+      setTimeout(() => { recentNew.clear(); }, 2500);
+    }
+  }
+  knownReports = names;
+  firstReportLoad = false;
+  updateSidebar();
+  if (route.type === 'reports') render();
+  if (route.type === 'report' && !names.has(route.id)) nav('reports');
+}
+
+async function loadRuns() {
+  const list = await (await fetch('/api/runs')).json();
+  for (const r of list.sort((a, b) => a.startedAt - b.startedAt)) {
+    registerRun(r);
+    const full = await (await fetch('/api/run-events/' + r.id)).json();
+    runEvents[r.id] = full.events;
+    runsById[r.id] = full;
+  }
+  updateRunCount();
+  render();
+}
+
+function registerRun(run) {
+  if (!runsById[run.id]) runOrder.unshift(run.id);
+  runsById[run.id] = { ...(runsById[run.id] || {}), ...run };
+  if (!runEvents[run.id]) runEvents[run.id] = [];
+  updateRunCount();
+}
+
+function updateRunCount() {
+  const running = Object.values(runsById).filter(r => r.status === 'running').length;
+  $('#run-count').textContent = running ? `${running} running` : '';
+}
+
+// ---------------------------------------------------------- sidebar ----
+let expanded = { skills: false, agents: false, reports: false };
+
+function toggleSection(section) {
+  expanded[section] = !expanded[section];
+  updateSidebar();
+}
+
+function updateSidebar() {
+  $('#skill-count').textContent = skills.length || '';
+  $('#agent-count').textContent = agents.length || '';
+  $('#report-count').textContent = reports.length || '';
+  $('#nav-home').classList.toggle('active', route.type === 'home');
+  $('#nav-skills').classList.toggle('active', route.type === 'skills' || route.type === 'skill');
+  $('#nav-agents').classList.toggle('active', route.type === 'agents' || route.type === 'agent');
+  $('#nav-reports').classList.toggle('active', route.type === 'reports' || route.type === 'report');
+  $('#nav-skills').classList.toggle('open', expanded.skills);
+  $('#nav-agents').classList.toggle('open', expanded.agents);
+  $('#nav-reports').classList.toggle('open', expanded.reports);
+  $('#sub-skills').classList.toggle('open', expanded.skills);
+  $('#sub-agents').classList.toggle('open', expanded.agents);
+  $('#sub-reports').classList.toggle('open', expanded.reports);
+  $('#sub-skills').innerHTML = skills.map(s => `
+    <div class="nav-item sub ${route.type === 'skill' && route.id === s.id ? 'active' : ''}"
+         onclick="nav('skill', '${esc(s.id)}')"><span class="label">${esc(s.name)}</span></div>`).join('');
+  $('#sub-agents').innerHTML = agents.map(a => `
+    <div class="nav-item sub ${route.type === 'agent' && route.id === a.id ? 'active' : ''}"
+         onclick="nav('agent', '${esc(a.id)}')"><span class="label">${esc(a.name)}</span></div>`).join('');
+  $('#sub-reports').innerHTML = reports.map(r => `
+    <div class="nav-item sub ${route.type === 'report' && route.id === r.name ? 'active' : ''}"
+         onclick="nav('report', '${esc(r.name)}')"><span class="label">${esc(prettyName(r.name))}</span></div>`).join('');
+}
+
+function prettyName(n) {
+  return n.replace(/^PROPERTY-/, '').replace(/\.(md|html|pdf)$/, '').replace(/-/g, ' ');
+}
+
+// ------------------------------------------------------------ routing ----
+function nav(type, id) {
+  route = { type, id };
+  if (type === 'skills' || type === 'skill') expanded.skills = true;
+  if (type === 'agents' || type === 'agent') expanded.agents = true;
+  if (type === 'reports' || type === 'report') expanded.reports = true;
+  render();
+  updateSidebar();
+  $('#main').scrollTop = 0;
+}
+
+function render() {
+  if (route.type === 'home') renderHome();
+  else if (route.type === 'skills') renderSkillsPage();
+  else if (route.type === 'agents') renderAgentsPage();
+  else if (route.type === 'reports') renderReportsPage();
+  else if (route.type === 'skill') renderSkillPage(route.id);
+  else if (route.type === 'agent') renderAgentPage(route.id);
+  else if (route.type === 'report') renderReportPage(route.id);
+}
+
+// ---------------------------------------------------- overview pages ----
+function renderSkillsPage() {
+  $('#main').innerHTML = `
+    <div class="page wide">
+      <h1 class="title">Skills</h1>
+      <div class="subtitle">${skills.length} skills in the AI Real Estate Analyst pack. Click a card for details, or run it directly.</div>
+      <hr class="div">
+      <div class="cards">
+        ${skills.map(s => `
+        <div class="card" onclick="nav('skill', '${esc(s.id)}')">
+          <div class="c-name">${esc(s.name)}</div>
+          <div class="c-id">/${esc(s.id)}</div>
+          <div class="c-desc">${esc(s.description)}</div>
+          <button class="c-run" onclick="event.stopPropagation(); openRunModal('${esc(s.id)}')">Run</button>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderAgentsPage() {
+  $('#main').innerHTML = `
+    <div class="page wide">
+      <h1 class="title">Agents</h1>
+      <div class="subtitle">${agents.length} specialized agents that run in parallel during a full property analysis. Each contributes a weighted share of the composite Property Score.</div>
+      <hr class="div">
+      <div class="cards">
+        ${agents.map(a => `
+        <div class="card" onclick="nav('agent', '${esc(a.id)}')">
+          <div class="c-name">${esc(a.name)}</div>
+          <div class="c-id">${a.weight ? esc(a.weight) + ' of Property Score' : esc(a.id)}</div>
+          <div class="c-desc">${esc(a.description)}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderReportsPage() {
+  $('#main').innerHTML = `
+    <div class="page">
+      <h1 class="title">Reports</h1>
+      <div class="subtitle">${reports.length ? reports.length + ' generated report' + (reports.length === 1 ? '' : 's') + ', newest first.' : 'Reports generated by skill runs will appear here.'}</div>
+      <hr class="div">
+      <div class="rows">
+        ${reports.map(r => `
+        <div class="row ${recentNew.has(r.name) ? 'new-flash' : ''}" onclick="nav('report', '${esc(r.name)}')">
+          <span class="r-name">${esc(prettyName(r.name))}</span>
+          <span class="r-meta">${r.name.split('.').pop().toUpperCase()} · ${new Date(r.mtime).toLocaleString()}</span>
+          <button class="r-del" title="Delete report" onclick="event.stopPropagation(); deleteReport('${esc(r.name)}')">×</button>
+        </div>`).join('')}
+      </div>
+      ${reports.length ? '' : '<div class="empty">Nothing here yet — run a skill to generate your first report.</div>'}
+    </div>`;
+}
+
+// --------------------------------------------------------------- home ----
+function renderHome() {
+  const blocks = runOrder.map(id => runBlockHTML(runsById[id])).join('');
+  $('#main').innerHTML = `
+    <div class="page">
+      <h1 class="title">Activity</h1>
+      <div class="subtitle">Live agent runs across the skill pack. Head to Skills to trigger one.</div>
+      <hr class="div">
+      ${blocks || '<div class="empty">No runs yet. Open a skill and hit Run — activity streams here live.</div>'}
+    </div>`;
+  for (const id of runOrder) fillLog(id);
+}
+
+function runBlockHTML(run, collapsed) {
+  const isCollapsed = collapsed ?? run.status !== 'running';
+  return `
+  <div class="run-block ${isCollapsed ? 'collapsed' : ''}" id="block-${run.id}">
+    <div class="rb-head" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="caret">▼</span>
+      <span class="skill-name">/${esc(run.skill)}</span>
+      <span class="in">${esc(run.input || '')}</span>
+      <span class="pill ${run.status}" id="pill-${run.id}">${run.status === 'running' ? 'Running' : run.status === 'done' ? 'Done' : 'Error'}</span>
+    </div>
+    <div class="log" id="log-${run.id}"></div>
+  </div>`;
+}
+
+function fillLog(runId) {
+  const log = $('#log-' + runId);
+  if (!log) return;
+  log.innerHTML = '';
+  for (const ev of runEvents[runId] || []) log.appendChild(evNode(ev));
+  log.scrollTop = log.scrollHeight;
+}
+
+function evNode(ev) {
+  const div = document.createElement('div');
+  div.className = 'ev ' + ev.kind;
+  const body = ev.kind === 'tool'
+    ? `<strong>${esc(ev.tool)}</strong>${ev.detail ? ' — ' + esc(ev.detail) : ''}`
+    : esc(ev.text || '');
+  div.innerHTML = `<span class="ico">${EV_ICONS[ev.kind] || '·'}</span><span>${body}</span>`;
+  return div;
+}
+
+// -------------------------------------------------------- skill page ----
+function renderSkillPage(id) {
+  const s = skills.find(x => x.id === id);
+  if (!s) return renderHome();
+  const skillRuns = runOrder.filter(rid => runsById[rid].skill === id);
+  $('#main').innerHTML = `
+    <div class="page">
+      <span class="crumb" onclick="nav('skills')">← Skills</span>
+      <h1 class="title">${esc(s.name)}</h1>
+      <div class="subtitle">${esc(s.description)}</div>
+      <div class="props">
+        <div class="prop"><span class="k">⌘ Command</span><span class="v"><code style="background:var(--code-bg);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:13px">/${esc(s.id)}</code></span></div>
+      </div>
+      <div class="run-bar">
+        <button class="btn" onclick="openRunModal('${esc(s.id)}')">Run this skill…</button>
+      </div>
+      <div id="skill-runs">${skillRuns.map(rid => runBlockHTML(runsById[rid])).join('')}</div>
+      <hr class="div">
+      <div class="section" style="padding-left:0">SKILL.md · read-only</div>
+      <div id="skill-doc" class="empty">Loading…</div>
+    </div>`;
+  for (const rid of skillRuns) fillLog(rid);
+  loadSkillDoc(s);
+}
+
+async function loadSkillDoc(s) {
+  const text = await (await fetch('/api/skill-md?id=' + encodeURIComponent(s.dir))).text();
+  const el = $('#skill-doc');
+  if (!el) return;
+  const fmMatch = text.match(/^---\n([\s\S]*?)\n---\n?/);
+  const body = fmMatch ? text.slice(fmMatch[0].length) : text;
+  el.className = '';
+  el.innerHTML =
+    (fmMatch ? `<div class="fm-block">${esc(fmMatch[1])}</div>` : '') +
+    '<div class="md-body">' + (window.marked ? marked.parse(body) : '<pre>' + esc(body) + '</pre>') + '</div>';
+}
+
+// -------------------------------------------------------- agent page ----
+function renderAgentPage(id) {
+  const a = agents.find(x => x.id === id);
+  if (!a) return renderHome();
+  $('#main').innerHTML = `
+    <div class="page">
+      <span class="crumb" onclick="nav('agents')">← Agents</span>
+      <h1 class="title">${esc(a.name)}</h1>
+      <div class="subtitle">${esc(a.description)}</div>
+      <div class="props">
+        ${a.weight ? `<div class="prop"><span class="k">⚖ Weight</span><span class="v">${esc(a.weight)} of the composite Property Score</span></div>` : ''}
+        <div class="prop"><span class="k">▶ Launched by</span><span class="v"><code style="background:var(--code-bg);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:13px">/realestate-analyze</code> — runs all 5 agents in parallel</span></div>
+      </div>
+      <hr class="div">
+      <div class="section" style="padding-left:0">AGENT DEFINITION · read-only</div>
+      <div id="agent-doc" class="empty">Loading…</div>
+    </div>`;
+  loadAgentDoc(a);
+}
+
+async function loadAgentDoc(a) {
+  const text = await (await fetch('/api/agent-md?id=' + encodeURIComponent(a.id))).text();
+  const el = $('#agent-doc');
+  if (!el) return;
+  el.className = '';
+  el.innerHTML = '<div class="md-body">' + (window.marked ? marked.parse(text) : '<pre>' + esc(text) + '</pre>') + '</div>';
+}
+
+// ---------------------------------------------------------- run modal ----
+let modalSkill = null;
+
+function openRunModal(id) {
+  const s = skills.find(x => x.id === id);
+  if (!s) return;
+  modalSkill = id;
+  const form = skillForm(id);
+  $('#modal').innerHTML = `
+    <h3>Run ${esc(s.name)}</h3>
+    <div class="m-sub">/${esc(id)}</div>
+    ${form.fields.map(f => `
+      <div class="m-field">
+        <label>${esc(f.label)} ${f.required ? '<span class="req">*</span>' : '<span class="opt">optional</span>'}</label>
+        ${f.type === 'select'
+          ? `<select id="f-${f.key}">${f.options.map(([val, lab]) =>
+              `<option value="${esc(val)}">${esc(lab)}</option>`).join('')}</select>`
+          : f.type === 'textarea'
+          ? `<textarea id="f-${f.key}" rows="4" placeholder="${esc(f.placeholder || '')}"></textarea>`
+          : `<input id="f-${f.key}" placeholder="${esc(f.placeholder || '')}"
+               value="${esc(localStorage.getItem('fv.' + f.key) || '')}"
+               onkeydown="if(event.key==='Enter')submitRunForm()">`}
+        ${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ''}
+      </div>`).join('')}
+    <div class="m-actions">
+      <button class="btn subtle" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="submitRunForm()">Run</button>
+    </div>`;
+  $('#modal-backdrop').classList.add('open');
+  const first = $('#modal input, #modal select, #modal textarea');
+  if (first) first.focus();
+}
+
+function closeModal() {
+  $('#modal-backdrop').classList.remove('open');
+  modalSkill = null;
+}
+
+async function submitRunForm() {
+  const id = modalSkill;
+  const form = skillForm(id);
+  const values = {};
+  let valid = true;
+  for (const f of form.fields) {
+    const el = $('#f-' + f.key);
+    const v = (el ? el.value : '').trim();
+    values[f.key] = v;
+    if (f.required && !v) { el.classList.add('invalid'); el.focus(); valid = false; }
+    else if (el && el.tagName === 'INPUT') { el.classList.remove('invalid'); if (v) localStorage.setItem('fv.' + f.key, v); }
+  }
+  if (!valid) return;
+  const input = (form.compose
+    ? form.compose(values)
+    : form.fields.map(f => values[f.key]).filter(Boolean).join(' ')).trim();
+  closeModal();
+  const run = await (await fetch('/api/run', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ skill: id, input }),
+  })).json();
+  registerRun(run);
+  const holder = $('#skill-runs');
+  if (holder && route.type === 'skill' && route.id === id) {
+    holder.insertAdjacentHTML('afterbegin', runBlockHTML(run, false));
+  } else if (route.type === 'home') {
+    render();
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ------------------------------------------------------- report page ----
+async function renderReportPage(name) {
+  const r = reports.find(x => x.name === name);
+  if (!r) return nav('reports');
+  const ext = name.split('.').pop();
+  $('#main').innerHTML = `
+    <div class="page ${ext === 'md' ? '' : 'wide'}">
+      <span class="crumb" onclick="nav('reports')">← Reports</span>
+      <h1 class="title">${esc(prettyName(name))}</h1>
+      <div class="subtitle">${esc(name)} · ${new Date(r.mtime).toLocaleString()}</div>
+      <div style="display:flex;gap:8px;margin-bottom:18px">
+        <a class="btn subtle" style="text-decoration:none" href="/api/report?name=${encodeURIComponent(name)}" target="_blank">Open in new tab</a>
+        <button class="btn danger" onclick="deleteReport('${esc(name)}')">Delete</button>
+      </div>
+      <hr class="div">
+      <div id="report-body" class="empty">Loading…</div>
+    </div>`;
+  const el = $('#report-body');
+  if (ext === 'md') {
+    const text = await (await fetch('/api/report?name=' + encodeURIComponent(name))).text();
+    el.className = 'md-body';
+    el.innerHTML = window.marked ? marked.parse(text) : '<pre>' + esc(text) + '</pre>';
+  } else {
+    el.className = '';
+    el.innerHTML = `<iframe class="report-frame" src="/api/report?name=${encodeURIComponent(name)}"></iframe>`;
+  }
+}
+
+async function deleteReport(name) {
+  if (!confirm(`Delete ${name}?\n\nThis permanently removes the file from disk.`)) return;
+  await fetch('/api/report?name=' + encodeURIComponent(name), { method: 'DELETE' });
+  if (route.type === 'report' && route.id === name) nav('reports');
+  await loadReports();
+  if (route.type === 'reports') render();
+}
+
+// ---------------------------------------------------------------- SSE ----
+function connectSSE() {
+  const es = new EventSource('/api/stream');
+  es.onopen = () => $('#conn').classList.remove('off');
+  es.onerror = () => $('#conn').classList.add('off');
+  es.addEventListener('run-event', e => {
+    const ev = JSON.parse(e.data);
+    (runEvents[ev.runId] = runEvents[ev.runId] || []).push(ev);
+    const log = $('#log-' + ev.runId);
+    if (log) { log.appendChild(evNode(ev)); log.scrollTop = log.scrollHeight; }
+  });
+  es.addEventListener('runs-changed', e => {
+    const run = JSON.parse(e.data);
+    const isNew = !runsById[run.id];
+    registerRun(run);
+    const pill = $('#pill-' + run.id);
+    if (pill) {
+      pill.className = 'pill ' + run.status;
+      pill.textContent = run.status === 'running' ? 'Running' : run.status === 'done' ? 'Done' : 'Error';
+    } else if (isNew && route.type === 'home') {
+      render();
+    }
+  });
+  es.addEventListener('reports-changed', () => loadReports());
+}
+
+// ---------------------------------------------------------------- init ----
+(async () => {
+  await loadSkills();
+  await loadAgents();
+  await loadReports();
+  await loadRuns();
+  nav('home');
+  connectSSE();
+})();
+</script>
+</body>
+</html>
